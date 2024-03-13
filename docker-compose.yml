@@ -1,0 +1,48 @@
+version: '3'
+name: hadoop-and-spark
+services:
+  hadoop-master:
+    container_name: 'hadoop-master'
+    hostname: 'hadoop-master'
+    build:
+      context: ./hadoop-master
+      dockerfile: Dockerfile
+    tty: true
+    ports:
+      - 9870:9870 # HDFS namenode information
+      - 8088:8088 # Hadoop cluster monitoring
+      - 7077:7077
+      - 16010:16010
+      - 4040:4040 # SparkContext UI (default port when launching a job)
+      - 18080:18080 # Spark history server report
+    networks:
+      - hadoop-net
+    volumes:
+      - ./scripts/start-app.sh:/root/start-app.sh
+
+  hadoop-worker1:
+    depends_on:
+      - hadoop-master
+    container_name: 'hadoop-worker1'
+    hostname: 'hadoop-worker1'
+    image: liliasfaxi/hadoop-cluster
+    tty: true
+    ports:
+      - 8041:8042 # NodeManager 1 information
+    networks:
+      - hadoop-net
+
+  hadoop-worker2:
+    depends_on:
+      - hadoop-master
+    container_name: 'hadoop-worker2'
+    hostname: 'hadoop-worker2'
+    image: liliasfaxi/hadoop-cluster
+    tty: true
+    ports:
+      - 8042:8042 # NodeManager 2 information
+    networks:
+      - hadoop-net
+
+networks:
+  hadoop-net:
